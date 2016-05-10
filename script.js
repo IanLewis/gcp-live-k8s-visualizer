@@ -35,7 +35,7 @@ var uses = {};
 var groups = {};
 
 var insertByName = function(index, value) {
-  if (!value || !value.metadata.labels || !value.metadata.name) {
+  if (!value || !value.metadata.labels || !value.metadata.name || !value.metadata.labels.name) {
     return;
   }
   // console.log("type = " + value.type + " labels = " + value.metadata.name);
@@ -56,6 +56,9 @@ var groupByName = function() {
 };
 
 var matchesLabelQuery = function(labels, selector) {
+  if (!selector || !labels) {
+    return false;
+  }
   var match = true;
   $.each(selector, function(key, value) {
     if (labels[key] != value) {
@@ -72,7 +75,8 @@ var connectControllers = function() {
     //console.log("controller: " + controller.metadata.name)
     for (var j = 0; j < pods.items.length; j++) {
       var pod = pods.items[j];
-      if (pod.metadata.labels.name == controller.metadata.labels.name) {
+      // Some pods may not have labels
+      if (pod.metadata.labels && pod.metadata.labels.name && matchesLabelQuery(pod.metadata.labels, controller.spec.selector)) {
         if (controller.metadata.labels.version && pod.metadata.labels.version && (controller.metadata.labels.version != pod.metadata.labels.version)) {
           continue;
         }
@@ -95,7 +99,7 @@ var connectControllers = function() {
     for (var j = 0; j < pods.items.length; j++) {
       var pod = pods.items[j];
       //console.log('connect service: ' + 'service-' + service.metadata.name + ' to pod-' + pod.metadata.name);
-      if (matchesLabelQuery(pod.metadata.labels, service.spec.selector)) {
+      if (service.metadata.labels.name && matchesLabelQuery(pod.metadata.labels, service.spec.selector)) {
         jsPlumb.connect({
           source: 'service-' + service.metadata.name,
           target: 'pod-' + pod.metadata.name,
@@ -193,7 +197,7 @@ var renderNodes = function() {
   var y = 25;
   var x = 100;
   $.each(nodes.items, function(index, value) {
-    console.log(value);
+    // console.log(value);
     var div = $('<div/>');
     var ready = 'not_ready';
     $.each(value.status.conditions, function(index, condition) {
@@ -233,7 +237,7 @@ var renderGroups = function() {
     $.each(list, function(index, value) {
       //console.log("render groups: " + value.type + ", " + value.metadata.name + ", " + index)
       var eltDiv = null;
-      console.log(value);
+      // console.log(value);
       var phase = value.status.phase ? value.status.phase.toLowerCase() : '';
       if (value.type == "pod") {
         if ('deletionTimestamp' in value.metadata) {
