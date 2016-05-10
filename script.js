@@ -265,8 +265,15 @@ var renderGroups = function() {
         //eltDiv = $('<div class="window wide controller" title="' + value.metadata.name + '" id="controller-' + value.metadata.name +
         //  '" style="left: ' + (900 + counts[key] * 100) + '; top: ' + (y + 100 + counts[key] * 100) + '"/>');
         var minLeft = 900;
-        var calcLeft = 400 + (value.status.replicas * 130);
+        var numPods = 0;
+        for (var i=0; i<list.length; i++) {
+          if (list[i].type == "pod") {
+            numPods++;
+          }
+        }
+        var calcLeft = 400 + (numPods * 130);
         var left = minLeft > calcLeft ? minLeft : calcLeft;
+
         eltDiv = $('<div class="window wide controller" title="' + value.metadata.name + '" id="controller-' + value.metadata.name +
           '" style="left: ' + (left + counts[key] * 100) + '; top: ' + (y + 100 + counts[key] * 100) + '"/>');
         eltDiv.html('<span>' + 
